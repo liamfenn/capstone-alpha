@@ -19,17 +19,41 @@ const createScene = function (engine, canvas) {
     // Create a basic light, aiming 0,1,0 - meaning, to the sky.
     const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
-    // Create a built-in "box" shape; its constructor takes 6 params: name, width, height, depth, subdivisions, scene.
-    const box = BABYLON.MeshBuilder.CreateBox("box", {}, scene);
+    // Load the 3D environment
+    BABYLON.SceneLoader.ImportMesh("", "assets/models/", "environment.glb", scene, function (meshes) {
+        meshes.forEach(mesh => {
+            mesh.position = new BABYLON.Vector3(0, 0, 0);
+        });
+    });
 
-    // Move the box upward 1/2 of its height.
-    box.position.y = 1;
+    // Movement variables
+    const moveSpeed = 0.1;
+    const keys = {};
 
-    // Add interactivity
-    box.actionManager = new BABYLON.ActionManager(scene);
-    box.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, function (evt) {
-        alert("Box clicked!");
-    }));
+    // Event listeners for keydown and keyup
+    window.addEventListener("keydown", (event) => {
+        keys[event.key] = true;
+    });
+
+    window.addEventListener("keyup", (event) => {
+        keys[event.key] = false;
+    });
+
+    // Update camera position based on keys pressed
+    scene.onBeforeRenderObservable.add(() => {
+        if (keys["w"] || keys["W"] || keys["ArrowUp"]) {
+            camera.position.z += moveSpeed;
+        }
+        if (keys["s"] || keys["S"] || keys["ArrowDown"]) {
+            camera.position.z -= moveSpeed;
+        }
+        if (keys["a"] || keys["A"] || keys["ArrowLeft"]) {
+            camera.position.x -= moveSpeed;
+        }
+        if (keys["d"] || keys["D"] || keys["ArrowRight"]) {
+            camera.position.x += moveSpeed;
+        }
+    });
 
     return scene;
 };
